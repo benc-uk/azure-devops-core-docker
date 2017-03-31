@@ -1,0 +1,1 @@
+docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group "Demo.Docker" --azure-location "West Europe" --azure-open-port 32768-32900 dockerhost

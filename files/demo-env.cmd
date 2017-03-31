@@ -1,0 +1,3 @@
+SET VSTS_PAT=1234567890_secret_token
+SET AZURE_SUB=1234567890_subscription_id
+SET VSTS_ACCT=1234567890_account_name
