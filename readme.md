@@ -1,4 +1,4 @@
-# End to End Azure DevOps Demo
+# End to End Azure DevOps Lab with .NET Core, Docker and VSTS
 ## Synopsis
 From first principals and nothing but VS Code, an empty directory and a cmd prompt we will create a working web application running in the cloud, in containers, deployed via an automated DevOps CI/CD pipeline
 
@@ -6,7 +6,7 @@ The demo will cover in scope:
 * Azure
 * VSTS
 * .NET Core (ASP MVC webapp)
-* Docker
+* Docker & Docker Machine
 
 You do not need to be an .NET or ASP expert for the coding part but you will need to be unafraid to make basic changes to a C# file, some HTML and project.json. You will need to be familiar with VSTS and Azure. You will also need to be fairly comfortable with the Docker command-line (but all commands will be supplied)
 
