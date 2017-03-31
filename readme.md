@@ -11,7 +11,7 @@ The demo will cover in scope:
 
 You do not need to be an .NET or ASP expert for the coding part but you will need to be unafraid to make basic changes to a C# file, some HTML and project.json. You will need to be familiar with VSTS and Azure. You will also need to be fairly comfortable with the Docker command-line (but all commands will be supplied)
 
-Notes. on acs here xxxxx
+*TODO. Add waffle on why not using ACS or Swarm here xxxxx*
 
 The basic overall flow is:
 * Create .NET Core ASP app from template
@@ -160,16 +160,16 @@ ENTRYPOINT dotnet demoapp.dll
 
 The last two changes are subtle ones, which will only be apparent later when we set up the VSTS build task.  
 
-
 ***
-xxxxx Jump in point xxxxxxxxxxxx
+
+*xxxxxxx TODO. add text on jump in point xxxxxxxxxxxx*
 
 Now it is best to multitask, building the Docker host takes some time, so kick that off and then switch to VSTS to create the project and connect up our repo 
 
 
 ## 5. Create Docker host in Azure
 Here we'll use Docker Machine to create a running Docker host, this is done with a single `docker-machine create`command. The host will be an Ubuntu 16.04 Linux VM which will have the Docker engine and daemon deployed on it
-Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's a tonne of other options you can add/modify should you wish. 
+Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's a [tonne of other options](https://docs.docker.com/machine/drivers/azure/) you can add/modify should you wish. 
 ```
 docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group "Demo.Docker" --azure-location "West Europe" --azure-open-port 32768-32900 dockerhost
 ```
