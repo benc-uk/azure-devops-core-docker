@@ -33,7 +33,8 @@ Do not ignore this part! You will need the following things set up and installed
 * An active [Azure subscription](https://portal.azure.com/). If you do not have a subscription:
   * You may have been given an [Azure Pass](https://www.microsoftazurepass.com/) card & code, please follow the steps given to activate your new subscription.
   * OR - create a [free Azure account and subscription](https://azure.microsoft.com/en-gb/free/)
-* An active [VSTS account](https://www.visualstudio.com/en-gb/docs/setup-admin/team-services/sign-up-for-visual-studio-team-services)
+* An active [VSTS Account](https://app.vsaex.visualstudio.com/)
+  * If you don't have an account, [create a free VSTS account](https://www.visualstudio.com/en-gb/docs/setup-admin/team-services/sign-up-for-visual-studio-team-services)
 * Install the [.NET Core 1.1 SDK](https://www.microsoft.com/net/download/core#/current)
 * Install [VS Code](https://code.visualstudio.com/download)
   * Required extension: Docker (Ctrl+P `ext install vscode-docker`)
@@ -49,12 +50,12 @@ Do not ignore this part! You will need the following things set up and installed
 ## Initial Setup Steps
 #### For detailed instructions for these steps with screenshots [click here](setup/)
 Overview of steps:
- * Create a new VSTS account (or new project if you already have an account)
- * Create a VSTS agent pool: Settings -> Agent queues -> Manage pools -> New pool. Call it: **DockerAgents**
- * Make a note of your Azure subscription ID
- * Make a note of your VSTS account name, `{account_name}.visualstudio.com` (it's in the URL when using VSTS)
- * Create a VSTS PAT (personal access token) with a 1 year expiry [Details](https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate)
- * If you've never run git before, run these commands (modifying with your details as required):
+ 1. Create a new VSTS account (or new project if you already have an account)
+ 2. Create a VSTS agent pool: Settings -> Agent queues -> New queue. Call it: ***DockerAgents***
+ 3. Make a note of your Azure subscription ID
+ 4. Create a PAT in VSTS (personal access token) [Details](https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate)
+ 5. Make a note of your VSTS account name, it's in the URL e.g. `{account_name}.visualstudio.com`
+ 6. If you've never run git before, run these commands (modifying with your details as required):
  ```
 git config --global user.email "your-email@example.com"
 git config --global user.name "Your Name"
