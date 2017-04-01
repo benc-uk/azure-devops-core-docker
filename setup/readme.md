@@ -38,16 +38,3 @@ so you can use that
 ## Optional - Creating git credentials
  * If you are not using the git credential manager you will need git credentials. From your new account/project page click 'Generate Git credentials'  
  ![vsts2](imgs/vsts2.png)
-
-
-## Fooo
-
- * Create a VSTS agent pool: Settings -> Agent queues -> Manage pools -> New pool. Call it: **DockerAgents**
- * Make a note of your Azure subscription id (see below)
- * Make a note of your VSTS account name, `{acct_name}.visualstudio.com` (see below)
- * Create a VSTS PAT (personal access token) with a 1 year expiry [Details](https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate)
- * If you've never run git before, run these commands (modifying with your details as required):
- ```
-  git config --global user.email "you@example.com"
-  git config --global user.name "Your Name"
-```

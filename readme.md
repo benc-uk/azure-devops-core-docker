@@ -53,7 +53,7 @@ Overview of steps:
  1. Create a new VSTS account (or new project if you already have an account)
  2. Create a VSTS agent pool: Settings -> Agent queues -> New queue. Call it: ***DockerAgents***
  3. Make a note of your Azure subscription ID
- 4. Create a PAT in VSTS (personal access token) [Details](https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate)
+ 4. Create a PAT in VSTS (personal access token) [Details](/setup#4-create-a-pat-in-vsts)
  5. Make a note of your VSTS account name, it's in the URL e.g. `{account_name}.visualstudio.com`
  6. If you've never run git before, run these commands (modifying with your details as required):
  ```
