@@ -1,67 +1,70 @@
 # Azure DevOps Lab with .NET Core, Docker and VSTS
 
 ## Synopsis
-From first principals and nothing but VS Code, an empty directory and a cmd prompt we will create a working web application running in the cloud, in containers, deployed via an automated DevOps CI/CD pipeline
+#### From first principals and nothing but VS Code, an empty directory and a cmd prompt we will create a working web application running in Azure, in Linux containers, deployed via an automated DevOps CI/CD pipeline
 
-The demo will cover in scope:
+The scenario will cover:
 * Azure
 * VSTS
 * .NET Core (ASP MVC webapp)
 * Docker & Docker Machine
 
-You do not need to be an .NET or ASP expert for the coding part but you will need to be unafraid to make basic changes to a C# file, some HTML and project.json. You will need to be familiar with VSTS and Azure. You will also need to be fairly comfortable with the Docker command-line (but all commands will be supplied)
+You do not need to be an .NET or ASP expert for the coding part but you will need to be unafraid to make basic changes to a C# file, and some HTML. Likewise no prior experience with VSTS and Azure is required (but beneficial). We will also spend some time with the Docker & docker-machine command line clients (but all commands will be supplied). You will be able to complete the lab with either a Windows or Mac machine, but only Windows has been tested.
 
-*TODO. Add waffle on why not using ACS or Swarm here xxxxx*
+Note. The scenario purposely does not use Azure Container Service, for this learning scenario Docker Machine presents a simpler & more lightweight way to get started with Docker running in Azure 
 
 The basic overall flow is:
 * Create .NET Core ASP app from template
 * Git repo setup
-* Minor modifications to code to make it more real
-* Creation & modification of Dockerfile
+* Minor modifications to the HTML to suit your taste :)
+* Creation & modification of a Dockerfile
 * Creation of VSTS project and code repo
-* Push of local git repo into VSTS
+* Push of git repo into VSTS
 * Creation of Docker host in Azure
 * Build definition in VSTS
 * Deploy VSTS agent as container in new Docker host
 * Run build in VSTS
 * Create release definition in VSTS 
-* Release to a running Docker container with our web app
+* Resulting in a running Docker container with our web app
+
 
 ## Pre-requisites 
-Do not ignore this part :) You will need the following things set up and installed on your machine
-* [Azure subscription](https://portal.azure.com/)
-* [VSTS account](https://my.visualstudio.com/)
-* [.NET Core 1.1 SDK](https://www.microsoft.com/net/download/core#/current)
-* [VS Code](https://code.visualstudio.com/download)
-  * Extension: Docker (Ctrl+P `ext install vscode-docker`)
-  * Extension: C# (Ctrl+P `ext install csharp`)
-  * Extension: Bootstrap 3 Snippets (Ctrl+P `ext install bootstrap-3-snippets`)
-* Docker - Two options:
-  * Install the complete [Docker for Windows package](https://docs.docker.com/docker-for-windows/install/)
-  * You only need two CLI tools for this demo, so a lightweight option is to [download them from this repo](Docker 1.13 client only Win x64.zip?raw=true) and place the two executables in your path
-* [Git for Windows](https://git-scm.com/download/win)
-* Git credential manager (Should be installed with git on Windows)
+Do not ignore this part! You will need the following things set up and installed on your machine: 
+* An active [Azure subscription](https://portal.azure.com/). If you do not have a subscription:
+  * You may have been given an [Azure Pass](https://www.microsoftazurepass.com/) card & code, please follow the steps given to activate your new subscription.
+  * OR - create a [free Azure account and subscription](https://azure.microsoft.com/en-gb/free/)
+* An active [VSTS account](https://www.visualstudio.com/en-gb/docs/setup-admin/team-services/sign-up-for-visual-studio-team-services)
+* Install the [.NET Core 1.1 SDK](https://www.microsoft.com/net/download/core#/current)
+* Install [VS Code](https://code.visualstudio.com/download)
+  * Required extension: Docker (Ctrl+P `ext install vscode-docker`)
+  * Optional extension: C# (Ctrl+P `ext install csharp`)
+  * Optional extension: Bootstrap 3 Snippets (Ctrl+P `ext install bootstrap-3-snippets`)
+* Docker, two options:
+  * Install the complete [Docker for Windows package](https://docs.docker.com/docker-for-windows/install/) or [Docker for Mac package](https://docs.docker.com/docker-for-mac/install/)
+  * You only need two CLI tools for this exercise, so a much more lightweight option is to [download them from this repo](Docker 1.13 client only Win x64.zip?raw=true) and place the two executables in your path. Sorry this is for Windows users only!
+* Install git; [Git for Windows](https://git-scm.com/download/win) or [Git for Mac](https://git-scm.com/download/mac)
+* Optional but strongly recommended: [Git credential manager](https://www.visualstudio.com/en-us/docs/git/set-up-credential-managers)
 
-**!IMPORTANT!** Run through the demo end to end on your machine at least once, to ensure you have everything setup. Things like VSTS tokens, git authentication, Azure subscription, blah blah
-Besides, there's a **lot** to remember so you want to be familiar with the flow, commands and edits 
 
-
-## One time initial setup steps
- * Create a VSTS agent pool: Settings -> Agent queues -> Manage pools -> New pool. 
-Call it: *DockerAgents*
- * Make a note of your Azure subscription id (see below)
- * Make a note of your VSTS account name, `{acct_name}.visualstudio.com` (see below)
+## Initial Setup Steps
+#### For detailed instructions for these steps with screenshots [click here](setup/)
+Overview of steps:
+ * Create a new VSTS account (or new project if you already have an account)
+ * Create a VSTS agent pool: Settings -> Agent queues -> Manage pools -> New pool. Call it: **DockerAgents**
+ * Make a note of your Azure subscription ID
+ * Make a note of your VSTS account name, `{account_name}.visualstudio.com` (it's in the URL when using VSTS)
  * Create a VSTS PAT (personal access token) with a 1 year expiry [Details](https://www.visualstudio.com/en-us/docs/setup-admin/team-services/use-personal-access-tokens-to-authenticate)
- * If you've never run git before, run these commands (modifying as required):
+ * If you've never run git before, run these commands (modifying with your details as required):
  ```
-  git config --global user.email "you@example.com"
-  git config --global user.name "Your Name"
+git config --global user.email "your-email@example.com"
+git config --global user.name "Your Name"
+git config --global credential.helper manager
 ```
 
-## Create a CMD batch script to store tokens & IDs
-This is for convenience and means you can copy & paste the commands in this guide 'as is' without having IDs and tokens hard-coded. Save it somewhere and run it before your demo. For example create `demo-env.cmd` and populate it as follows:
+## Optional: Create a batch script to store tokens & IDs
+This is for convenience and means you can copy & paste the commands in this guide 'as is' without having IDs and tokens hard-coded. Save it somewhere and run it before you carry on. For example create `demo-env.cmd` and populate it with the relevant information from the initial set-up steps
 
-File: `demo-env.cmd`
+File: `demo-env.cmd` *(On Mac OSX: change SET to EXPORT and extension to .sh)*
 ```bat
 SET VSTS_PAT=1234567890_secret_token
 SET AZURE_SUB=1234567890_subscription_id
@@ -168,7 +171,7 @@ Now it is best to multitask, building the Docker host takes some time, so kick t
 
 
 ## 5. Create Docker host in Azure
-Here we'll use Docker Machine to create a running Docker host, this is done with a single `docker-machine create`command. The host will be an Ubuntu 16.04 Linux VM which will have the Docker engine and daemon deployed on it
+Here we'll use Docker Machine to create a running Docker host, this is done with a single `docker-machine create` command. The host will be an Ubuntu 16.04 Linux VM which will have the Docker engine and daemon deployed on it
 Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's a [tonne of other options](https://docs.docker.com/machine/drivers/azure/) you can add/modify should you wish. 
 ```
 docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group "Demo.Docker" --azure-location "West Europe" --azure-open-port 32768-32900 dockerhost
