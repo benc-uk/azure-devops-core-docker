@@ -223,7 +223,7 @@ This might take about a minute to pull the image from Dockerhub and to fire up. 
 
 ## 10. Create build definition
 We're nearly there (I promise!), the last major step is to define the build job in VSTS. Unfortunately there's a few steps and they are all manual: 
-* In your new VSTS project, go into 'Build & Release' and create new build definition
+* In your new VSTS project, go into 'Build & Release' --> 'Builds' --> create new build definition
 * Select "ASP.NET Core (PREVIEW)" as the template
 * Give it a nice name, as the default is pretty ugly, e.g. "Dotnet CI build for Docker"
 * Modify the build as follows:
@@ -239,22 +239,55 @@ We're nearly there (I promise!), the last major step is to define the build job 
     * Add the task in the list labeled "Copy Files"
     * Change the new copy task: Change contents to "Dockerfile" and the target folder to "$(build.artifactstagingdirectory)" (no quotes on either)
   * Click on the "Options" tab and set the default agent queue to *DockerAgents*
+  * Click on the "Triggers" tab and turn on 'Continuous Integration'
 
 Click 'Save & Queue' and kick off a build, ensure the queue is set to *DockerAgents* then make a silent prayer to the Demo Gods(TM) and kick the build it off...  
 When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
 
 
 ## 11. Release our app
-Two choices at this point:
- * **Manual Release**
- Return to your terminal and run `docker run -d -p 5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be `32768` but it increases by one each time. Now skip to part 12 to view the app.
- * **Continuous Deployment with VSTS**
- Return to your terminal and run `docker run -d -p 5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be `32768` but it increases by one each time. Now skip to part 12 to view the app.
+You have two choices at this point, if you're running out of time or tired of VSTS run a quick manual deployment. Otherwise I suggest you press on and complete the VSTS release definition so we have a complete continuous deployment pipeline.
+> Note. We allow Docker to assign dynamic ports to our containers rather mapping them to known/fixed port numbers. There are pros & cons to this approach, but the main advantage is it allows us to run multiple builds and deployments on the same Docker host without a lot of cleanup steps.
+
+#### 11.1 Manual Deployment
+Return to your terminal and run `docker run -d -p 5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be 32768 but it increases by one each time. Now skip to part 12 to view the app.
+
+#### 11.2 Continuous Deployment with VSTS
+These steps set up an automated release task in VSTS to run our app as a container each time it is built
+ * In your new VSTS project, go into 'Build & Release' --> 'Releases' --> create new definition
+ * Choose the 'Empty' option at the bottom of the dialog
+ * It should pick up your project and build definition as the source, tick the 'Continuous deployment' checkbox
+ * Rename the definition (click the pencil) to something sensible e.g. "Deploy to Docker"
+ * Rename the environment if you wish, e.g. "Dev"
+ * Click where it says "Run on agent", change the deployment queue to "DockerAgents"
+ * Add a task, click on "All" in the catalog and find the "Docker" task, add it TWICE, then hit close
+ * Change the first Docker task as follows:
+   * Action: Run an image
+   * Image Name: `mywebapp:$(Build.BuildId)`
+   * Container Name: `mywebapp_$(Release.ReleaseName)`     
+   * Ports: `5000`
+ * Change the second Docker task as follows:
+   * Action: Run a Docker command
+   * Command: `port mywebapp_$(Release.ReleaseName)`
+
+To trigger the pipeline with a small change to your application code, e.g. change some words in your HTML homepage. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
+* Back in VSTS you should see your build being triggered and run.  
+* Once the build completes you should see the release trigger and the "Deploy to Docker" job running with a release number e.g. "Release-1".  
+* Double click on the release and view the logs, select the "Run a Docker command" step and you will see the dynamic port number Docker assigned of our deployed and running app container, the port numbers start at 32768 but can be higher
 
 ## 12. View our deployed web app
-To connect to our running container and web app we'll also need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`
+Final Step! To connect to our running container and web app we'll also need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`. Once you have the IP address and container port, create a new browser tab and go to `http://{docker_host_public_ip}:{container_port}` and you should see your web application up and running. 
 
-With these two pieces of information, create a new browser tab and go to http://{docker_host_public_ip}:{container_port} and you should see your web application up and running. Phew!
+---
+
+# Summary
+You should now have a containerized .NET Core web application, a Docker host running in Azure, and fully working release pipeline in VSTS. Feel free to experiment with what you have got. Some options you can look at
+* Using Azure Container Registry 
+* Integrating testing to your pipeline with web checks and unit tests
+* Deploying to an Azure Container Service cluster. e.g. Kubernates or Docker Swarm
+* Using an Azure Linux Web App
+
+---
 
 # Appendix
 
