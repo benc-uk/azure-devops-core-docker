@@ -159,7 +159,7 @@ With our app created we now want to run it in Azure as a Docker container, we ha
 Here we'll use Docker Machine to create a running Docker host, this is done with a single `docker-machine create` command. The host will be an Ubuntu 16.04 Linux VM which will have the Docker engine and daemon deployed on it
 Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's [many other options](https://docs.docker.com/machine/drivers/azure/) but unless you are familiar with Azure run the command as follows: 
 ```
-docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-resources --azure-location northeurope --azure-open-port 32768-32900 dockerhost
+docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-resources --azure-location northeurope --azure-open-port 80 dockerhost
 ```
 You will need to manually substitute `%AZURE_SUB%` (unless you have it set as an environmental var). You should have made a note of the Azure subscription ID at the beginning of the scenario.  
 This will take about 5-8 minutes to complete, you can watch it deploying in the Azure portal by going into the resource group and taking a look, but don't wait, it's best to switch over to what we need to do in VSTS
@@ -250,7 +250,7 @@ You have two choices at this point, if you're running out of time or tired of VS
 > Note. We allow Docker to assign dynamic ports to our containers rather mapping them to known/fixed port numbers. There are pros & cons to this approach, but the main advantage is it allows us to run multiple builds and deployments on the same Docker host without a lot of cleanup steps.
 
 #### 11.1 Manual Deployment
-Return to your terminal and run `docker run -d -p 5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be 32768 but it increases by one each time. Now skip to part 12 to view the app.
+Return to your terminal and run `docker run -d -p 80:5000 mywebapp` this starts a container running your built .NET core app, and maps port 80 on the host to port 5000 in the container. Now skip to part 12 to view the app.
 
 #### 11.2 Continuous Deployment with VSTS
 These steps set up an automated release task in VSTS to run our app as a container each time it is built
@@ -260,42 +260,43 @@ These steps set up an automated release task in VSTS to run our app as a contain
  * Rename the definition (click the pencil) to something sensible e.g. "Deploy to Docker"
  * Rename the environment if you wish, e.g. "Dev"
  * Click where it says "Run on agent", change the deployment queue to "DockerAgents"
- * Add a task, click on "All" in the catalog and find the "Docker" task, add it TWICE, then hit close
- * Change the first Docker task as follows:
+ * Click Add tasks, go into 'Utility' in the catalog and find the 'Command Line' task, add it, then hit close
+ * Change the task as follows:
+   * Tool: `bash`
+   * Arguments: `-c "docker ps --filter \"name=mywebapp\" -q|xargs docker rm -f || true"`
+ * Click Add tasks, go into 'All' in the catalog and find the 'Docker' task, add it, then hit close
+ * Change the Docker task as follows:
    * Action: Run an image
    * Image Name: `mywebapp:$(Build.BuildId)`
    * Container Name: `mywebapp_$(Release.ReleaseName)`     
-   * Ports: `5000`
- * Change the second Docker task as follows:
-   * Action: Run a Docker command
-   * Command: `port mywebapp_$(Release.ReleaseName)`
+   * Ports: `80:5000`
 
 To trigger the pipeline with a small change to your application code, e.g. change some words in your HTML homepage. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
 * Back in VSTS you should see your build being triggered and run.  
 * Once the build completes you should see the release trigger and the "Deploy to Docker" job running with a release number e.g. "Release-1".  
-* Double click on the release and view the logs, select the "Run a Docker command" step and you will see the dynamic port number Docker assigned of our deployed and running app container, the port numbers start at 32768 but can be higher
 
-## 12. View our deployed web app
-Final Step! To connect to our running container and web app we'll also need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`. Once you have the IP address and container port, create a new browser tab and go to `http://{docker_host_public_ip}:{container_port}` and you should see your web application up and running. 
+
+## 12. View your deployed web app
+Final Step... To connect to our running container and web app we'll need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`. Once you have the IP address, open a new browser tab and go to `http://{docker_host_public_ip}` and you should see your web application up and running. Gosh wow amazing! etc. 
 
 ---
 
 # Summary
-You should now have a containerized .NET Core web application, a Docker host running in Azure, and fully working release pipeline in VSTS. Feel free to experiment with what you have got. Some options you can look at
-* Using Azure Container Registry 
+You should now have a containerized .NET Core web application, a Docker host running in Azure, and fully working release pipeline in VSTS. Feel free to experiment from here, some ideas you can look at
+* Using Azure Container Registry
 * Integrating testing to your pipeline with web checks and unit tests
-* Deploying to an Azure Container Service cluster. e.g. Kubernates or Docker Swarm
+* Deploying to a Docker cluster with Azure Container Service, e.g. Kubernates or Docker Swarm
 * Using an Azure Linux Web App
 
 ---
 
 # Appendix
 
-## Suggested cleanup tasks
+## Suggested cleanup & removal tasks
  * Remove the docker-machine config and deployed VM in Azure with `docker-machine rm dockerhost`. Note. Annoyingly this leaves the storage account and resource group in Azure, so go into the portal and tidy up
  * Remove VSTS agent from *DockerAgents* queue
  * Remove the VSTS project
- * Delete local *mydemoapp* folder
+ * Delete the local *mydemoapp* folder
 
 
 ## Run Docker management web UI

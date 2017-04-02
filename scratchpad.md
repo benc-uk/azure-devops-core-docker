@@ -19,3 +19,7 @@ For reasons best explained by [this blog post](http://www.donovanbrown.com/post/
     "outputName": "webapp"
   },
 ```
+
+
+
+Return to your terminal and run `docker run -d -p 80:5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be 32768 but it increases by one each time. Now skip to part 12 to view the app.
