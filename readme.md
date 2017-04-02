@@ -241,7 +241,9 @@ We're nearly there (I promise!), the last major step is to define the build job 
   * Click on the "Options" tab and set the default agent queue to *DockerAgents*
   * Click on the "Triggers" tab and turn on 'Continuous Integration'
 
-Click 'Save & Queue' and kick off a build, ensure the queue is set to *DockerAgents* then make a silent prayer to the Demo Gods(TM) and kick the build it off...  
+> #### NOTE: This page has [some screenshots of these steps](vsts-build.md)
+
+Click 'Save & Queue' to kick off a manual build, make sure the queue is set to *DockerAgents* then sit back and Hope It All Works(TM)...
 When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
 
 
@@ -271,7 +273,7 @@ These steps set up an automated release task in VSTS to run our app as a contain
    * Container Name: `mywebapp_$(Release.ReleaseName)`     
    * Ports: `80:5000`
 
-This page has [some screenshots of these steps](vsts-release.md)
+> #### NOTE: This page has [some screenshots of these steps](vsts-release.md)
 
 To trigger the pipeline with a small change to your application code, e.g. change some words in your HTML homepage. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
 * Back in VSTS you should see your build being triggered and run.  
