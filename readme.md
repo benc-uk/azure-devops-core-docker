@@ -90,7 +90,7 @@ Take a look around, you'll see we have a fully functional ASP.NET Core MVC appli
 Open **Program.cs** and two prompts will appear, neither are critical but click 'Yes' to the add assets prompt, and 'Close' for the dependencies prompt  
 Insert the following after the `UseKestrel()` line (note there is no semicolon!) :
 ```csharp
-.UseUrls("http://*.5000")
+.UseUrls("http://*:5000")
 ```
 .NET Core doesn't require IIS and comes with a built-in webserver called Kestrel, by default Kestrel binds to the loopback adapter and we want it to listen on all IPs. Non-coders don't panic, this is the only real code change we need to make.
 > Note. This change is not important now, but _critical_ later when the app is running inside a Docker container
@@ -161,6 +161,7 @@ Most of the command parameters are self explanatory, the open ports are importan
 ```
 docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-resources --azure-location northeurope --azure-open-port 32768-32900 dockerhost
 ```
+You will need to manually substitute `%AZURE_SUB%` (unless you have it set as an environmental var). You should have made a note of the Azure subscription ID at the beginning of the scenario.  
 This will take about 5-8 minutes to complete, you can watch it deploying in the Azure portal by going into the resource group and taking a look, but don't wait, it's best to switch over to what we need to do in VSTS
 
 
@@ -215,51 +216,58 @@ To run the agent as container in the Docker host you just created, run this comm
 ```bash 
 docker run -e VSTS_WORK='/var/vsts/$VSTS_AGENT' -v /var/vsts:/var/vsts -v /var/run/docker.sock:/var/run/docker.sock -e VSTS_ACCOUNT=%VSTS_ACCT% -e VSTS_TOKEN=%VSTS_PAT% -e VSTS_POOL=DockerAgents -d microsoft/vsts-agent:latest
 ```
-You need to substitute your VSTS PAT and VSTS account name, which we made a note of at the beginning, also the `VSTS_POOL` should match the pool/queue name you created in the setup
+You will need to manually substitute `%VSTS_PAT%` and `%VSTS_ACCT%` (unless you have them set as environmental vars). You should have made a note of these at the beginning of the scenario
 
 This might take about a minute to pull the image from Dockerhub and to fire up. You can check it has worked in the VSTS "Agent Queues" view, and check the *DockerAgents* pool/queue, the agent should eventually appear and turn green, the name will be gibberish BTW (if this annoys you can name it with `-e VSTS_AGENT=Foobar`). If it doesn't appear, run `docker ps` and check if the container is running, if not check your command and parameters.
 
 
-## 11. Create build definition
-We're nearly there (I promise!), the last major step is to define the build job in VSTS. There's a few steps: 
+## 10. Create build definition
+We're nearly there (I promise!), the last major step is to define the build job in VSTS. Unfortunately there's a few steps and they are all manual: 
 * In your new VSTS project, go into 'Build & Release' and create new build definition
 * Select "ASP.NET Core (PREVIEW)" as the template
 * Give it a nice name, as the default is pretty ugly, e.g. "Dotnet CI build for Docker"
 * Modify the build as follows:
-  * Remove or disable the 'Publish Artifact' task  
-    (The Docker image we create is in effect our release artifact, no need for VSTS server drops)
-  * Remove or disable the 'Test' task
   * Change the 'Publish' task:
-    * Untick both "Publish Web Projects" & "Zip Published Projects" options
-    * Change the "Arguments" so the last parameter is `--output pub`
-  * Add a new task (place it last in the sequence)
+    * Untick both the 'Zip Published Projects' and 'Publish Web Projects' checkboxes
+    * Change the 'Arguments' so the last parameter is just `--output pub`
+  * Add a new task (place it after the Publish step in the sequence)
     * Search for "Docker"
     * Add the first task in the list (labeled Docker)
-  * Change the new Docker task - in the 'Image Name' field and remove the first part of the image tag and hardcode it, something like `demoapp:$(Build.BuildId)` ALSO add `latest` to the additional tags
+    * Change the new Docker task: in the 'Image Name' field and remove the first part of the image tag and hardcode it, something like `mywebapp:$(Build.BuildId)` also tick the 'Include Latest tag' checkbox
+ * Add another new task (place it after the Docker task in the sequence)
+    * Search for "Copy Files"
+    * Add the task in the list labeled "Copy Files"
+    * Change the new copy task: Change contents to "Dockerfile" and the target folder to "$(build.artifactstagingdirectory)" (no quotes on either)
   * Click on the "Options" tab and set the default agent queue to *DockerAgents*
 
 Click 'Save & Queue' and kick off a build, ensure the queue is set to *DockerAgents* then make a silent prayer to the Demo Gods(TM) and kick the build it off...  
-When the build completes you should have a new Docker image called 'demoapp' ready for use, validate this with a quick `docker images` command
-
-## 12. Release our app
-Two choices at this point, quick a dirty is to run `docker run -d -p 5000 demoapp:latest` this starts a container running your compiled and built .NET core app.  
+When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
 
 
-In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be `32768` but it increases by one each time.
+## 11. Release our app
+Two choices at this point:
+ * **Manual Release**
+ Return to your terminal and run `docker run -d -p 5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be `32768` but it increases by one each time. Now skip to part 12 to view the app.
+ * **Continuous Deployment with VSTS**
+ Return to your terminal and run `docker run -d -p 5000 mywebapp` this starts a container running your compiled and built .NET core app. In order to connect to the app you will need to get the dynamic port number, to find this run `docker ps` and look at the container at the top of the list, make a note of the port in the section looking like `0.0.0.0:xxxxx->5000/tcp`. If this is the first time you've started it the port is likely to be `32768` but it increases by one each time. Now skip to part 12 to view the app.
 
-To connect we'll also need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`
+## 12. View our deployed web app
+To connect to our running container and web app we'll also need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`
+
+With these two pieces of information, create a new browser tab and go to http://{docker_host_public_ip}:{container_port} and you should see your web application up and running. Phew!
 
 # Appendix
 
-## Cleanup tasks
+## Suggested cleanup tasks
  * Remove the docker-machine config and deployed VM in Azure with `docker-machine rm dockerhost`. Note. Annoyingly this leaves the storage account and resource group in Azure, so go into the portal and tidy up
  * Remove VSTS agent from *DockerAgents* queue
  * Remove the VSTS project
- * Delete local *devopsdemo* folder
+ * Delete local *mydemoapp* folder
+
 
 ## Run Docker management web UI
 To make things a bit more visually exciting you can run a nice little web UI for your Docker host called Portainer, this runs as a container:
 ```
 docker run -d -p 9000 -v "/var/run/docker.sock:/var/run/docker.sock" portainer/portainer 
 ```
-After you've started it, get the dynamic port number as described above, and connect in your browser
+After you've started it, get the dynamic port number and Docker host IP as described above, and connect in your browser
