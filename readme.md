@@ -271,6 +271,8 @@ These steps set up an automated release task in VSTS to run our app as a contain
    * Container Name: `mywebapp_$(Release.ReleaseName)`     
    * Ports: `80:5000`
 
+This page has [some screenshots of these steps](vsts-release.md)
+
 To trigger the pipeline with a small change to your application code, e.g. change some words in your HTML homepage. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
 * Back in VSTS you should see your build being triggered and run.  
 * Once the build completes you should see the release trigger and the "Deploy to Docker" job running with a release number e.g. "Release-1".  
