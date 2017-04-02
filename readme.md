@@ -126,96 +126,102 @@ Hit save and return to your browser and hit refresh to automatically see your ch
 Return to where you ran `dotnet run` and hit `Ctrl+C` when you are done
 
 
-## 5. Add Docker support
-We want to add Docker support to the project, the Docker extension for VSTS makes this easy. Return to VS Code:
-* Hit *Ctrl+Shift+P*, type 'docker' then pick "Add docker files to workspace"
+## 4. Add Docker support
+We want to add Docker support to the project, and the Docker extension for VS Code makes this super easy. Return to VS Code:
+* Hit *Ctrl+Shift+P*, type "docker" then pick "Add docker files to workspace", you will be prompted for two things
   * Choose '.NET Core'
-  * Choose '5000' for the port
+  * Change the port from '3000' to '5000'
 
-This will add a few of files to the project, the key one being `Dockerfile`, open it up, to take a look and make some small changes:
+This will add a few of files to the project, the key one being `Dockerfile`, open it up, to take a look and we need to make some small changes:
 * Change source image tag to version "1.1.1"
   * `FROM microsoft/aspnetcore:1.1.1`
-* Change the dll entrypoint (note the dll name matches the folder name for your project)
-  * `ENTRYPOINT dotnet mywebapp.dll`
 * Change the source variable to a folder called 'pub':
   * `ARG source=.` -> `ARG source=pub`
 
 Your resulting `Dockerfile` should look like this:
 ```docker
 FROM microsoft/aspnetcore:1.1.1
-LABEL Name=arse Version=0.0.1 
+LABEL Name=mywebapp Version=0.0.1 
 ARG source=pub
 WORKDIR /app
 EXPOSE 5000
 COPY $source .
 ENTRYPOINT dotnet mywebapp.dll
 ```
+> Note 1. The use of pub as the source folder isn't strictly required, but will make more sense later when we set up the CI pipeline in VSTS  
+> Note 2. If you are stuck, having problems or want to jump in at this point you can cheat by cloning the following from Github: [ASP.NET Core demo app](https://github.com/benc-uk/dotnet-demoapp)  
 
-The last two changes are subtle ones, which will only be apparent later when we set up the VSTS build task.  
+---
 
-***
+With our app created we now want to run it in Azure as a Docker container, we have many different ways to achieve this but we'll use Docker Machine. We'll multitask here, building the Docker host takes some time, so we can kick that off and then switch over to VSTS to create the project and connect up our repo with git
 
-*xxxxxxx TODO. add text on jump in point xxxxxxxxxxxx*
-
-Now it is best to multitask, building the Docker host takes some time, so kick that off and then switch to VSTS to create the project and connect up our repo 
-
-
-## 6. Create Docker host in Azure
+## 5. Create Docker host in Azure
 Here we'll use Docker Machine to create a running Docker host, this is done with a single `docker-machine create` command. The host will be an Ubuntu 16.04 Linux VM which will have the Docker engine and daemon deployed on it
-Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's a [tonne of other options](https://docs.docker.com/machine/drivers/azure/) you can add/modify should you wish. 
+Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's [many other options](https://docs.docker.com/machine/drivers/azure/) but unless you are familiar with Azure run the command as follows: 
 ```
 docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-resources --azure-location northeurope --azure-open-port 32768-32900 dockerhost
 ```
-This will take about 5-8 minutes to complete, you can show it kicking off in the Azure portal but then switch over to VSTS
+This will take about 5-8 minutes to complete, you can watch it deploying in the Azure portal by going into the resource group and taking a look, but don't wait, it's best to switch over to what we need to do in VSTS
 
 
-## 7. Create and VSTS project and load in code
-Over in VSTS:
-* Create a new project, call it what you like but choose git for version control 
-* Now jump back to the command prompt and stage and your code to git locally
+## 6. Create and VSTS project and load in code
+Create another command/terminal window or use the integrated terminal in VS Code and stage and your code to git locally  
+Alternatively if you really command-line phobic use the integrated git support `Ctrl+Shift+G` in VS Code
 ```
 git init
 git add .
 git commit -m "initial commit"
 ```
-Then and push into the new repo in VSTS. You will get the correct URL & syntax for the 3rd command by expanding the  
-*"or push an existing repository from command line"* section of the project getting started page
+
+We now want to push our code up into our VSTS repo, use these commands substituting as required:
+> Note. You will get the correct URL & syntax for this command by expanding the *"push an existing repository from command line"* section of the project start page or code page
 ```
-git remote add origin https://{vsts_acct}.visualstudio.com/_git/{project}
+git remote add origin https://{vsts_account}.visualstudio.com/_git/{project}
 git push -u origin --all
 ```
-Authentication **should** should pop up or 'just work', if you have git credential manager installed, if you have trouble you have the option of creating git credentials on the project screen
+If you have the git credential manager installed, authentication should should pop up, so use your VSTS account details.  
+If you have trouble you have the option of manually creating git credentials by going into VSTS --> Code --> Generate Git credentials
 
 
-## 8. Install Docker Integration into VSTS 
-* [Goto here to the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.docker&targetId=c13c7b99-2463-4cd0-84a0-5260108a913e) - click "Install"
+## 7. Install Docker Integration into VSTS 
+Docker support in VSTS is enabled via an extension on the VSTS marketplace 
+* Open this link in a new tab: [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.docker) and click "Install"
 
 
-## 9. Point Docker client at remote host
-Once the `docker-machine create` command (step 5) has completed (hopefully successfully) we need some way to interact with it. Docker machine makes this easy, by quickly setting a bunch of environment variables which "points" your docker client at the new host. There's no need to connect via SSH or anything messy, simply run:
-```dos
+## 8. Point Docker client at remote host
+Hopefully the `docker-machine create` command we fired off earlier has completed (and successfully!) if not, go grab a quick coffee.  
+We need some way to interact with our new Docker host, and Docker machine makes this easy, by quickly setting a bunch of environment variables which "points" your Docker client at the new host. There's no need to connect via SSH or anything messy, simply run:
+```
 docker-machine env dockerhost
 ```
-This will spit out a bunch of stuff but the last line after the REM is what you need to copy & paste and run, it should look exactly like:
+
+This will spit out a bunch of stuff but the last line is what you need to copy & paste and run, it should look like:
 ```
 @FOR /f "tokens=*" %i IN ('docker-machine env dockerhost') DO @%i
 ```
-What has this done? Well now if you issue any `docker` command on your machine it will be run on the remote Docker host running in Azure. Pretty cool. Run a quick `docker ps` or `docker run hello-world` to test everything is OK. 
+or on Mac/Linux
+```
+eval "$(docker-machine env dockerhost)"
+```
+
+What has this done? It has set several environmental variables used by the docker client, now if you issue any `docker` command on your machine it will be run on the remote Docker host running in Azure. And this is why we don't need the whole Docker engine installed locally on your machine. Neat!  
+
+Let's run a quick `docker ps` and/or `docker run hello-world` to verify everything is OK. You should get no errors
 
 
-## 10. Run VSTS agent as Docker container
+## 9. Run VSTS agent as Docker container
 We'll now spin up a VSTS agent, this will serve two purposes; to do our .NET code compile/publish, but also build our Docker image. We'll run it as a container which then gives us access to the parent Docker host.  
 To run the agent as container in the Docker host you just created, run this command:
 ```bash 
 docker run -e VSTS_WORK='/var/vsts/$VSTS_AGENT' -v /var/vsts:/var/vsts -v /var/run/docker.sock:/var/run/docker.sock -e VSTS_ACCOUNT=%VSTS_ACCT% -e VSTS_TOKEN=%VSTS_PAT% -e VSTS_POOL=DockerAgents -d microsoft/vsts-agent:latest
 ```
-You need your VSTS PAT and VSTS account name. Note the `VSTS_POOL` should match the pool name you created pre-demo.
+You need to substitute your VSTS PAT and VSTS account name, which we made a note of at the beginning, also the `VSTS_POOL` should match the pool/queue name you created in the setup
 
-This might take about a minute to pull the image from Dockerhub and to fire up. You can check it has worked in the VSTS "Agent Queues" view, and check the *DockerAgents* pool/queue, the agent should eventually appear and turn green, the name will be gibberish BTW (if this annoys you can name it with `-e VSTS_AGENT=Foobar`)
+This might take about a minute to pull the image from Dockerhub and to fire up. You can check it has worked in the VSTS "Agent Queues" view, and check the *DockerAgents* pool/queue, the agent should eventually appear and turn green, the name will be gibberish BTW (if this annoys you can name it with `-e VSTS_AGENT=Foobar`). If it doesn't appear, run `docker ps` and check if the container is running, if not check your command and parameters.
 
 
 ## 11. Create build definition
-We're nearly there, the last major step is to define the build job in VSTS. There's a few steps: 
+We're nearly there (I promise!), the last major step is to define the build job in VSTS. There's a few steps: 
 * In your new VSTS project, go into 'Build & Release' and create new build definition
 * Select "ASP.NET Core (PREVIEW)" as the template
 * Give it a nice name, as the default is pretty ugly, e.g. "Dotnet CI build for Docker"
