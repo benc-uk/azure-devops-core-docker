@@ -1,6 +1,6 @@
 # Initial Setup Steps for Azure DevOps Lab with .NET Core, Docker and VSTS
 
-These are more detailed steps with screenshots
+These are more detailed steps for the setup tasks with screenshots
 
 ## 1. Creating a new VSTS account / project
  * Choose a unique name for your account, make sure you choose git to manage your code: 

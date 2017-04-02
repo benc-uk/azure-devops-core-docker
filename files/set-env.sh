@@ -1,0 +1,4 @@
+#!/bin/bash
+EXPORT VSTS_PAT=1234567890_secret_token
+EXPORT AZURE_SUB=1234567890_subscription_id
+EXPORT VSTS_ACCT=1234567890_account_name

@@ -27,6 +27,7 @@ The basic overall flow is:
 * Create release definition in VSTS 
 * Resulting in a running Docker container with our web app
 
+---
 
 ## Pre-requisites 
 Do not ignore this part! You will need the following things set up and installed on your machine: 
@@ -53,7 +54,7 @@ Overview of steps:
  1. Create a new VSTS account (or new project if you already have an account)
  2. Create a VSTS agent pool: Settings -> Agent queues -> New queue. Call it: ***DockerAgents***
  3. Make a note of your Azure subscription ID
- 4. Create a PAT in VSTS (personal access token) [Details](/setup#4-create-a-pat-in-vsts)
+ 4. Create a PAT (personal access token) in VSTS. [How to steps](/setup#4-create-a-pat-in-vsts)
  5. Make a note of your VSTS account name, it's in the URL e.g. `{account_name}.visualstudio.com`
  6. If you've never run git before, run these commands (modifying with your details as required):
  ```
@@ -61,52 +62,56 @@ git config --global user.email "your-email@example.com"
 git config --global user.name "Your Name"
 git config --global credential.helper manager
 ```
+It is recommended you paste the VSTS account name, PAT token and Azure subscription ID to a scratchpad file somewhere. Another suggestion is to create a small batch file which sets these as environmental variables, this will let you copy/paste and run as-is some of the lengthier commands later on, without changes. Some sample files are provided in the file section to get you started
 
-## Optional: Create a batch script to store tokens & IDs
-This is for convenience and means you can copy & paste the commands in this guide 'as is' without having IDs and tokens hard-coded. Save it somewhere and run it before you carry on. For example create `demo-env.cmd` and populate it with the relevant information from the initial set-up steps
+---
 
-File: `demo-env.cmd` *(On Mac OSX: change SET to EXPORT and extension to .sh)*
-```bat
-SET VSTS_PAT=1234567890_secret_token
-SET AZURE_SUB=1234567890_subscription_id
-SET VSTS_ACCT=1234567890_account_name
-```
-
-***
-# Main Demo Flow
-What follows is the full step by step guide to the demo 
+# Main Exercise Flow
+With all the setup complete, what follows is the full step by step guide to the exercise 
 
 ## 1. Create .NET Core MVC webapp
-Open a command prompt and run:
+First of all we'll create our .NET Core application project and source code. The .NET Core SDK uses the Yeoman templating system and comes with several built-in templates to get you started quickly. Open a command prompt or terminal and run the following commands:
 ```
-mkdir devopsdemo
-cd devopsdemo
-dotnet new -t web
-git init
+mkdir mywebapp
+cd mywebapp
+dotnet new mvc
 ```
+If this is the first time running the dotnet command it will take a minute to decompress and cache some stuff.  
+> Note. You can call the folder anything you like, but if you change it, the Dockerfile we create later needs to reflect that change
+
 Now open your project folder in VS Code
 ```
 code .
 ```
-Choose 'Yes' to the add assets prompt, and 'Restore' for the dependencies prompt, however neither of these is critical
+Take a look around, you'll see we have a fully functional ASP.NET Core MVC application with views, controllers and static HTML/CSS content all created for us.
 
 
-## 2. Modify code
-Edit **Program.cs** and insert the following after the `UseKestrel()` line (note there is note semicolon).  
-*Note. This is not important now, but critical later when the app is running inside a container so that the  
-webserver is not bound to localhost*
+## 2. Modify application webserver behavior 
+Open **Program.cs** and two prompts will appear, neither are critical but click 'Yes' to the add assets prompt, and 'Close' for the dependencies prompt  
+Insert the following after the `UseKestrel()` line (note there is no semicolon!) :
 ```csharp
 .UseUrls("http://*.5000")
 ```
+.NET Core doesn't require IIS and comes with a built-in webserver called Kestrel, by default Kestrel binds to the loopback adapter and we want it to listen on all IPs. Non-coders don't panic, this is the only real code change we need to make.
+> Note. This change is not important now, but _critical_ later when the app is running inside a Docker container
 
-*If you are feeling extra wimpy skip this step*  
-Edit **Views/Home/Index.cshtml** and delete all the contents. If you feeling slighty wimpy put some plain text in here  
-"Hello World" or "Demo for blah"  
-If you are comfortable with HTML, then put in something like 
+
+## 3. Run and tailor your application
+Let's take a look at our app and make sure it runs. In VS Code hit `Ctrl+'` or switch back to your cmd/terminal window, then run: 
+```
+dotnet restore
+dotnet run
+```
+.NET Core is much more lightweight than old legacy .NET, the `dotnet restore` command pulls down the packages it requires to run our app and nothing more. If you have worked with Node.js it is similar to the "npm install" step. 
+
+Open a browser and go to [`http://localhost:5000`](http://localhost:5000) to see your app. You should see the standard generated website that the SDK has created. It's not very interesting, so let's make it more personal...
+
+Return to VS Code and open **Views/Home/Index.cshtml** and delete all the existing contents of the file.  
+If you are comfortable with HTML, then put in something like the snippet below. Using the Bootstrap snippet extension for VS Code makes this simple, just type `bs3-j` and Intellisense will kick in and lets you insert a Bootstrap jumbotron which you can fiddle with and edit.
 ```
 <div class="jumbotron">
     <div class="container">
-        <h1>Hello demo audience!</h1>
+        <h1>My Azure Web App</h1>
         <p>Microsoft &hearts; DevOps and Docker</p>
         <p>
             <a class="btn btn-primary btn-lg">Pretty cool!</a>
@@ -114,52 +119,36 @@ If you are comfortable with HTML, then put in something like
     </div>
 </div>
 ```
-Using the Bootstrap snippet extension for VS Code makes this simple, type `bs3-j` and insert a jumbotron which you can fiddle with and edit.
 
-Lastly we need to make a small tweak to **project.json** (Which if your audience is new to .NET Core it's worth introducing anyhow)  
-For reasons best explained by [this blog post](http://www.donovanbrown.com/post/Control-the-name-of-your-NET-Core-output), we need to specify the `outputName` for our build, otherwise the VSTS publish task will create a dll called "s.dll" 
-```
-  "buildOptions": {
-    "debugType": "portable",
-    "emitEntryPoint": true,
-    "preserveCompilationContext": true,
-    "outputName": "webapp"
-  },
-```
+> Note. If you feeling slightly wimpy just put some plain text in, e.g. "Hello this is my web app". If you are feeling extra wimpy you can skip this step altogether. 
+Hit save and return to your browser and hit refresh to automatically see your changes. ASP.NET Core uses a view template system called Razor which doesn't require recompilation to update. Neat!
 
-## 3. Run the application
-*This step is optional.* Demo has been fairly console/editor heavy until now, so let's show something running  
-In CMD window
-```
-dotnet restore
-dotnet run
-```
-Open browser and go to <http://localhost:5000>. Return to the command window and Ctrl-C when you are done
+Return to where you ran `dotnet run` and hit `Ctrl+C` when you are done
 
 
-## 4. Add Docker support
+## 5. Add Docker support
 We want to add Docker support to the project, the Docker extension for VSTS makes this easy. Return to VS Code:
 * Hit *Ctrl+Shift+P*, type 'docker' then pick "Add docker files to workspace"
   * Choose '.NET Core'
   * Choose '5000' for the port
 
 This will add a few of files to the project, the key one being `Dockerfile`, open it up, to take a look and make some small changes:
-* Change .NET Core version to v1.1 
-  * `FROM microsoft/aspnetcore:1.1.0`
-* Change the dll entrypoint (note the dll name matches the outputName we put in `project.json`)
-  * `ENTRYPOINT dotnet webapp.dll`
-* Change app source to a folder 'pub':
+* Change source image tag to version "1.1.1"
+  * `FROM microsoft/aspnetcore:1.1.1`
+* Change the dll entrypoint (note the dll name matches the folder name for your project)
+  * `ENTRYPOINT dotnet mywebapp.dll`
+* Change the source variable to a folder called 'pub':
   * `ARG source=.` -> `ARG source=pub`
 
 Your resulting `Dockerfile` should look like this:
 ```docker
-FROM microsoft/aspnetcore:1.1.0
-LABEL Name=devopsapp Version=0.0.0 
-ARG source=build
+FROM microsoft/aspnetcore:1.1.1
+LABEL Name=arse Version=0.0.1 
+ARG source=pub
 WORKDIR /app
 EXPOSE 5000
 COPY $source .
-ENTRYPOINT dotnet demoapp.dll
+ENTRYPOINT dotnet mywebapp.dll
 ```
 
 The last two changes are subtle ones, which will only be apparent later when we set up the VSTS build task.  
@@ -171,20 +160,21 @@ The last two changes are subtle ones, which will only be apparent later when we 
 Now it is best to multitask, building the Docker host takes some time, so kick that off and then switch to VSTS to create the project and connect up our repo 
 
 
-## 5. Create Docker host in Azure
+## 6. Create Docker host in Azure
 Here we'll use Docker Machine to create a running Docker host, this is done with a single `docker-machine create` command. The host will be an Ubuntu 16.04 Linux VM which will have the Docker engine and daemon deployed on it
 Most of the command parameters are self explanatory, the open ports are important for the last part of the demo when we want to connect to our app. There's a [tonne of other options](https://docs.docker.com/machine/drivers/azure/) you can add/modify should you wish. 
 ```
-docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group "Demo.Docker" --azure-location "West Europe" --azure-open-port 32768-32900 dockerhost
+docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-resources --azure-location northeurope --azure-open-port 32768-32900 dockerhost
 ```
 This will take about 5-8 minutes to complete, you can show it kicking off in the Azure portal but then switch over to VSTS
 
 
-## 6. Create and VSTS project and load in code
+## 7. Create and VSTS project and load in code
 Over in VSTS:
 * Create a new project, call it what you like but choose git for version control 
 * Now jump back to the command prompt and stage and your code to git locally
 ```
+git init
 git add .
 git commit -m "initial commit"
 ```
@@ -197,11 +187,11 @@ git push -u origin --all
 Authentication **should** should pop up or 'just work', if you have git credential manager installed, if you have trouble you have the option of creating git credentials on the project screen
 
 
-## 7. Install Docker Integration into VSTS 
+## 8. Install Docker Integration into VSTS 
 * [Goto here to the Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.docker&targetId=c13c7b99-2463-4cd0-84a0-5260108a913e) - click "Install"
 
 
-## 8. Point Docker client at remote host
+## 9. Point Docker client at remote host
 Once the `docker-machine create` command (step 5) has completed (hopefully successfully) we need some way to interact with it. Docker machine makes this easy, by quickly setting a bunch of environment variables which "points" your docker client at the new host. There's no need to connect via SSH or anything messy, simply run:
 ```dos
 docker-machine env dockerhost
@@ -213,7 +203,7 @@ This will spit out a bunch of stuff but the last line after the REM is what you 
 What has this done? Well now if you issue any `docker` command on your machine it will be run on the remote Docker host running in Azure. Pretty cool. Run a quick `docker ps` or `docker run hello-world` to test everything is OK. 
 
 
-## 9. Run VSTS agent as Docker container
+## 10. Run VSTS agent as Docker container
 We'll now spin up a VSTS agent, this will serve two purposes; to do our .NET code compile/publish, but also build our Docker image. We'll run it as a container which then gives us access to the parent Docker host.  
 To run the agent as container in the Docker host you just created, run this command:
 ```bash 
@@ -224,7 +214,7 @@ You need your VSTS PAT and VSTS account name. Note the `VSTS_POOL` should match 
 This might take about a minute to pull the image from Dockerhub and to fire up. You can check it has worked in the VSTS "Agent Queues" view, and check the *DockerAgents* pool/queue, the agent should eventually appear and turn green, the name will be gibberish BTW (if this annoys you can name it with `-e VSTS_AGENT=Foobar`)
 
 
-## 10. Create build definition
+## 11. Create build definition
 We're nearly there, the last major step is to define the build job in VSTS. There's a few steps: 
 * In your new VSTS project, go into 'Build & Release' and create new build definition
 * Select "ASP.NET Core (PREVIEW)" as the template
@@ -245,7 +235,7 @@ We're nearly there, the last major step is to define the build job in VSTS. Ther
 Click 'Save & Queue' and kick off a build, ensure the queue is set to *DockerAgents* then make a silent prayer to the Demo Gods(TM) and kick the build it off...  
 When the build completes you should have a new Docker image called 'demoapp' ready for use, validate this with a quick `docker images` command
 
-## 11. Release our app
+## 12. Release our app
 Two choices at this point, quick a dirty is to run `docker run -d -p 5000 demoapp:latest` this starts a container running your compiled and built .NET core app.  
 
 
