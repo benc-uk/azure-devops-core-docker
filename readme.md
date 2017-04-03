@@ -30,7 +30,8 @@ The basic overall flow is:
 ---
 
 ## Pre-requisites 
-Do not ignore this part! :smirk: You will need the following things set up and installed on your machine: 
+:warning: **Do not ignore this part!** :warning:  
+You will need the following things set up and installed on your machine: 
 * An active [Azure subscription](https://portal.azure.com/). If you do not have a subscription:
   * You may have been given an [Azure Pass](https://www.microsoftazurepass.com/) card & code, please follow the steps given to activate your new subscription.
   * OR - create a [free Azure account and subscription](https://azure.microsoft.com/en-gb/free/)
@@ -243,7 +244,7 @@ We're nearly there (I promise! :sweat_smile:), the last major step is to define 
 
 > #### NOTE: For screenshots of the previous steps, [click here](vsts-build.md)
 
-Click 'Save & Queue' to kick off a manual build, make sure the queue is set to *DockerAgents* then sit back and Hope It All Works(TM)...
+Click 'Save & Queue' to kick off a manual build, make sure the queue is set to *DockerAgents* then sit back, watch the logs and *Hope It All Works(:tm:)*...  
 When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
 
 
@@ -283,7 +284,8 @@ To trigger the pipeline, make a small change to your application code, e.g. chan
 
 ## 12. View your deployed web app
 Final Step... To connect to our running container and web app we'll need the public IP of the Docker host, we can get this from the Azure portal, [click here for steps with screenshots](azure.md).  
-Alternatively run `echo %DOCKER_HOST%` and the IP address will be in the resulting URL. Once you have the IP address, open a new browser tab and go to `http://{docker_host_public_ip}` and you should see your web application up and running. Gosh wow amazing! etc. :sunglasses:
+Alternatively run `echo %DOCKER_HOST%` and the IP address will be in the resulting URL. Once you have the IP address, open a new browser tab and go to `http://{docker_host_public_ip}` and you should see your web application up and running.  
+Gosh wow amazing! etc. :sunglasses: 
 
 ---
 
