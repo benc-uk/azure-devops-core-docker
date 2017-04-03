@@ -1,1 +1,1 @@
-docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-machine --azure-location northeurope --azure-open-port 32768-32900 dockerhost
+docker-machine create --driver azure --azure-subscription-id %AZURE_SUB% --azure-resource-group my-docker-resources --azure-location northeurope --azure-open-port 80 dockerhost

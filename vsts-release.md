@@ -12,10 +12,11 @@
 ---
 
 ### Release definition - Command-line task
+> Note. The arguments should be `-c "docker ps --filter \"name=mywebapp\" -q|xargs docker rm -f || true"`
 ![screen](imgs/rel-clean.png)
 
 ---
 
-### Release definition - Docker run image task
+### Release definition - Docker run Docker image task
 ![screen](imgs/rel-docker.png)
 

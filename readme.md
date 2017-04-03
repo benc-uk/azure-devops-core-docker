@@ -1,7 +1,7 @@
 # Azure DevOps Lab with .NET Core, Docker and VSTS
 
 ## Synopsis
-#### From first principals and nothing but VS Code, an empty directory and a cmd prompt we will create a working web application running in Azure, in Linux containers, deployed via an automated DevOps CI/CD pipeline
+#### From first principals and nothing but VS Code, an empty directory and a command terminal we will create a working web application running in Azure, in Linux containers, deployed via an automated DevOps CI/CD pipeline
 
 The scenario will cover:
 * Azure
@@ -9,9 +9,9 @@ The scenario will cover:
 * .NET Core (ASP MVC webapp)
 * Docker & Docker Machine
 
-You do not need to be an .NET or ASP expert for the coding part but you will need to be unafraid to make basic changes to a C# file, and some HTML. Likewise no prior experience with VSTS and Azure is required (but beneficial). We will also spend some time with the Docker & docker-machine command line clients (but all commands will be supplied). You will be able to complete the lab with either a Windows or Mac machine, but only Windows has been tested.
+You do not need to be an .NET expert for the coding part but you will need to make basic changes to a C# file, and some HTML. Likewise no prior experience with VSTS and Azure is required (but obviously beneficial). We will also spend some time with the Docker & docker-machine command line tools, but all commands will be supplied. You will be able to complete the lab with either a Windows or Mac machine, but only Windows has been tested.
 
-Note. The scenario purposely does not use Azure Container Service, for this learning scenario Docker Machine presents a simpler & more lightweight way to get started with Docker running in Azure 
+> Note. The scenario purposely does not use Azure Container Service, for this learning scenario Docker Machine presents a simpler & more lightweight way to get started with Docker running in Azure 
 
 The basic overall flow is:
 * Create .NET Core ASP app from template
@@ -43,19 +43,19 @@ Do not ignore this part! You will need the following things set up and installed
   * Optional extension: Bootstrap 3 Snippets (Ctrl+P `ext install bootstrap-3-snippets`)
 * Docker, two options:
   * Install the complete [Docker for Windows package](https://docs.docker.com/docker-for-windows/install/) or [Docker for Mac package](https://docs.docker.com/docker-for-mac/install/)
-  * You only need two CLI tools for this exercise, so a much more lightweight option is to [download them from this repo](Docker 1.13 client only Win x64.zip?raw=true) and place the two executables in your path. Sorry this is for Windows users only!
+  * However - you only need two CLI tools for this exercise, so a much more lightweight option is to [download them from this repo](files/Docker 1.13 client only Win x64.zip?raw=true) and place the two executables in your path. Sorry this is for Windows users only!
 * Install git; [Git for Windows](https://git-scm.com/download/win) or [Git for Mac](https://git-scm.com/download/mac)
 * Optional but strongly recommended: [Git credential manager](https://www.visualstudio.com/en-us/docs/git/set-up-credential-managers)
 
 
 ## Initial Setup Steps
-#### For detailed instructions for these steps with screenshots [click here](setup/)
+> #### For detailed instructions for these steps with screenshots [click here](setup/)
 Overview of steps:
  1. Create a new VSTS account (or new project if you already have an account)
  2. Create a VSTS agent pool: Settings -> Agent queues -> New queue. Call it: ***DockerAgents***
  3. Make a note of your Azure subscription ID
  4. Create a PAT (personal access token) in VSTS. [How to steps](/setup#4-create-a-pat-in-vsts)
- 5. Make a note of your VSTS account name, it's in the URL e.g. `{account_name}.visualstudio.com`
+ 5. Make a note of your VSTS account name, e.g. `{account_name}.visualstudio.com`
  6. If you've never run git before, run these commands (modifying with your details as required):
  ```
 git config --global user.email "your-email@example.com"
@@ -241,15 +241,16 @@ We're nearly there (I promise!), the last major step is to define the build job 
   * Click on the "Options" tab and set the default agent queue to *DockerAgents*
   * Click on the "Triggers" tab and turn on 'Continuous Integration'
 
-> #### NOTE: This page has [some screenshots of these steps](vsts-build.md)
+> #### NOTE: For screenshots of the previous steps, [click here](vsts-build.md)
 
 Click 'Save & Queue' to kick off a manual build, make sure the queue is set to *DockerAgents* then sit back and Hope It All Works(TM)...
 When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
 
 
 ## 11. Release our app
-You have two choices at this point, if you're running out of time or tired of VSTS run a quick manual deployment. Otherwise I suggest you press on and complete the VSTS release definition so we have a complete continuous deployment pipeline.
-> Note. We allow Docker to assign dynamic ports to our containers rather mapping them to known/fixed port numbers. There are pros & cons to this approach, but the main advantage is it allows us to run multiple builds and deployments on the same Docker host without a lot of cleanup steps.
+You have two choices at this point, if you're running out of time or tired of fiddling with VSTS, run a quick manual deployment. Otherwise I suggest you press on and complete the VSTS release definition so we have a complete continuous deployment pipeline.
+
+> Note. We use a fixed port for our app (HTTP port 80) which simplifies things, as it means we don't need to inspect our containers to find the dynamic port. However it also means we can only have a single container running.
 
 #### 11.1 Manual Deployment
 Return to your terminal and run `docker run -d -p 80:5000 mywebapp` this starts a container running your built .NET core app, and maps port 80 on the host to port 5000 in the container. Now skip to part 12 to view the app.
@@ -273,9 +274,9 @@ These steps set up an automated release task in VSTS to run our app as a contain
    * Container Name: `mywebapp_$(Release.ReleaseName)`     
    * Ports: `80:5000`
 
-> #### NOTE: This page has [some screenshots of these steps](vsts-release.md)
+> #### NOTE: For screenshots of the previous steps, [click here](vsts-release.md)
 
-To trigger the pipeline with a small change to your application code, e.g. change some words in your HTML homepage. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
+To trigger the pipeline, make a small change to your application code, e.g. change some words in your index.cstml. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
 * Back in VSTS you should see your build being triggered and run.  
 * Once the build completes you should see the release trigger and the "Deploy to Docker" job running with a release number e.g. "Release-1".  
 
@@ -287,6 +288,7 @@ Final Step... To connect to our running container and web app we'll need the pub
 
 # Summary
 You should now have a containerized .NET Core web application, a Docker host running in Azure, and fully working release pipeline in VSTS. Feel free to experiment from here, some ideas you can look at
+* Use dynamic Docker ports to allow multiple containers to be released & running
 * Using Azure Container Registry
 * Integrating testing to your pipeline with web checks and unit tests
 * Deploying to a Docker cluster with Azure Container Service, e.g. Kubernates or Docker Swarm
