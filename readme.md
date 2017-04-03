@@ -122,10 +122,11 @@ If you are comfortable with HTML, then put in something like the snippet below. 
 </div>
 ```
 
-> Note. If you feeling slightly wimpy just put some plain text in, e.g. "Hello this is my web app". If you are feeling extra wimpy you can skip this step altogether. 
-Hit save and return to your browser and hit refresh to automatically see your changes. ASP.NET Core uses a view template system called Razor which doesn't require recompilation to update. Neat!
+> Note. If you feeling slightly wimpy just put some plain text in, e.g. "Hello this is my web app". If you are feeling extra wimpy you can skip this step altogether.  
 
-Return to where you ran `dotnet run` and hit `Ctrl+C` when you are done
+Hit save and return to your browser and hit refresh to automatically see your changes. ASP.NET Core uses a view template system called Razor which doesn't require recompilation to update.  
+
+When you are happy, return to where you ran `dotnet run` and hit `Ctrl+C` to shutdown the webserver and app
 
 
 ## 4. Add Docker support
