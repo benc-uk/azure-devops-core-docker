@@ -3,7 +3,7 @@
 These are more detailed steps for the setup tasks with screenshots
 
 ## 1. Creating a new VSTS account / project
- * Choose a unique name for your account, make sure you choose git to manage your code: 
+ * Choose a unique name for your account, make sure you choose git to manage your code:  
  ![vsts1](imgs/vsts1.png)
  * If you just created a new VSTS account, it will automatically create a project called "MyFirstProject" 
 so you can use that
