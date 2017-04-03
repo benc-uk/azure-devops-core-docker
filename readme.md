@@ -37,14 +37,14 @@ You will need the following things set up and installed on your machine:
   * OR - create a [free Azure account and subscription](https://azure.microsoft.com/en-gb/free/)
 * An active [VSTS Account](https://app.vsaex.visualstudio.com/)
   * If you don't have an account, [create a free VSTS account](https://www.visualstudio.com/en-gb/docs/setup-admin/team-services/sign-up-for-visual-studio-team-services)
-* Install the [.NET Core 1.1 SDK](https://www.microsoft.com/net/download/core#/current)
+* Install the [.NET Core 1.1 SDK](https://www.microsoft.com/net/download/core#/current) (Don't worry, it's tiny)
 * Install [VS Code](https://code.visualstudio.com/download)
   * Required extension: Docker (Ctrl+P `ext install vscode-docker`)
   * Optional extension: C# (Ctrl+P `ext install csharp`)
   * Optional extension: Bootstrap 3 Snippets (Ctrl+P `ext install bootstrap-3-snippets`)
 * Docker, two options:
   * Install the complete [Docker for Windows package](https://docs.docker.com/docker-for-windows/install/) or [Docker for Mac package](https://docs.docker.com/docker-for-mac/install/)
-  * However - you only need two CLI tools for this exercise, so a much more lightweight option is to [download them from this repo](files/Docker 1.13 client only Win x64.zip?raw=true) and place the two executables in your path. Sorry this is for Windows users only!
+  * However - you only need two small CLI tools for this exercise, so a much more lightweight option is to [download them from this repo](https://github.com/benc-uk/azure-devops-core-docker/blob/master/files/Docker%201.13%20client%20only%20Win%20x64.zip?raw=true), extract and place the two executables in your path or in your project directory. Sorry this is for Windows users only!
 * Install git; [Git for Windows](https://git-scm.com/download/win) or [Git for Mac](https://git-scm.com/download/mac)
 * Optional but strongly recommended: [Git credential manager](https://www.visualstudio.com/en-us/docs/git/set-up-credential-managers)
 
