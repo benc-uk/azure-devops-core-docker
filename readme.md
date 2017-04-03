@@ -50,12 +50,11 @@ You will need the following things set up and installed on your machine:
 
 
 ## Initial Setup Steps
-> #### For detailed instructions for these steps with screenshots [click here](setup/)
 Overview of steps:
  1. Create a new VSTS account (or new project if you already have an account)
  2. Create a VSTS agent pool: Settings -> Agent queues -> New queue. Call it: ***DockerAgents***
  3. Make a note of your Azure subscription ID
- 4. Create a PAT (personal access token) in VSTS. [How to steps](/setup#4-create-a-pat-in-vsts)
+ 4. Create a PAT (personal access token) in VSTS. 
  5. Make a note of your VSTS account name, e.g. `{account_name}.visualstudio.com`
  6. If you've never run git before, run these commands (modifying with your details as required):
  ```
@@ -63,7 +62,9 @@ git config --global user.email "your-email@example.com"
 git config --global user.name "Your Name"
 git config --global credential.helper manager
 ```
-It is recommended you paste the VSTS account name, PAT token and Azure subscription ID to a scratchpad file somewhere. Another suggestion is to create a small batch file which sets these as environmental variables, this will let you copy/paste and run as-is some of the lengthier commands later on, without changes. Some sample files are provided in the file section to get you started
+> #### For detailed instructions of these steps with screenshots [click here](setup/)
+
+It is recommended you paste the VSTS account name, PAT token and Azure subscription ID to a scratchpad file somewhere. Another suggestion is to create a small batch file which sets these as environmental variables, this will let you copy/paste and run as-is some of the lengthier commands later on, without changes. Some sample files are provided in the [files](files/) section to get you started
 
 ---
 
