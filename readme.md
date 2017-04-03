@@ -4,10 +4,10 @@
 #### From first principals and nothing but VS Code, an empty directory and a command terminal we will create a working web application running in Azure, in Linux containers, deployed via an automated DevOps CI/CD pipeline
 
 The scenario will cover:
-* Azure
-* VSTS
 * .NET Core (ASP MVC webapp)
 * Docker & Docker Machine
+* Azure
+* VSTS
 
 You do not need to be an .NET expert for the coding part but you will need to make basic changes to a C# file, and some HTML. Likewise no prior experience with VSTS and Azure is required (but obviously beneficial). We will also spend some time with the Docker & docker-machine command line tools, but all commands will be supplied. You will be able to complete the lab with either a Windows or Mac machine, but only Windows has been tested.
 
@@ -30,7 +30,7 @@ The basic overall flow is:
 ---
 
 ## Pre-requisites 
-Do not ignore this part! You will need the following things set up and installed on your machine: 
+Do not ignore this part! :smirk: You will need the following things set up and installed on your machine: 
 * An active [Azure subscription](https://portal.azure.com/). If you do not have a subscription:
   * You may have been given an [Azure Pass](https://www.microsoftazurepass.com/) card & code, please follow the steps given to activate your new subscription.
   * OR - create a [free Azure account and subscription](https://azure.microsoft.com/en-gb/free/)
@@ -222,7 +222,7 @@ This might take about a minute to pull the image from Dockerhub and to fire up. 
 
 
 ## 10. Create build definition
-We're nearly there (I promise!), the last major step is to define the build job in VSTS. Unfortunately there's a few steps and they are all manual: 
+We're nearly there (I promise! :sweat_smile:), the last major step is to define the build job in VSTS. Unfortunately there's a few steps and they are all manual: 
 * In your new VSTS project, go into 'Build & Release' --> 'Builds' --> create new build definition
 * Select "ASP.NET Core (PREVIEW)" as the template
 * Give it a nice name, as the default is pretty ugly, e.g. "Dotnet CI build for Docker"
@@ -282,7 +282,8 @@ To trigger the pipeline, make a small change to your application code, e.g. chan
 
 
 ## 12. View your deployed web app
-Final Step... To connect to our running container and web app we'll need the public IP of the Docker host, we can get this from the Azure portal or by running `echo %DOCKER_HOST%`. Once you have the IP address, open a new browser tab and go to `http://{docker_host_public_ip}` and you should see your web application up and running. Gosh wow amazing! etc. 
+Final Step... To connect to our running container and web app we'll need the public IP of the Docker host, we can get this from the Azure portal, [click here for steps with screenshots](azure.md).  
+Alternatively run `echo %DOCKER_HOST%` and the IP address will be in the resulting URL. Once you have the IP address, open a new browser tab and go to `http://{docker_host_public_ip}` and you should see your web application up and running. Gosh wow amazing! etc. :sunglasses:
 
 ---
 
