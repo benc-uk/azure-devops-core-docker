@@ -16,8 +16,8 @@ You do not need to be an .NET expert for the coding part but you will need to ma
 The basic overall flow is:
 * Create .NET Core ASP app from template
 * Git repo setup
-* Minor modifications to the HTML to suit your taste :)
-* Creation & modification of a Dockerfile
+* Minor modifications to the app HTML to suit your taste :)
+* Addition of Dockerfile to containerize our app
 * Creation of VSTS project and code repo
 * Push of git repo into VSTS
 * Creation of Docker host in Azure
@@ -69,7 +69,7 @@ It is recommended you paste the VSTS account name, PAT token and Azure subscript
 ---
 
 # Main Exercise Flow
-With all the setup complete, what follows is the full step by step guide to the exercise 
+With all the setup and pre-work complete, what follows below is the full step by step guide to the exercise 
 
 ## 1. Create .NET Core MVC webapp
 First of all we'll create our .NET Core application project and source code. The .NET Core SDK uses the Yeoman templating system and comes with several built-in templates to get you started quickly. Open a command prompt or terminal and run the following commands:
