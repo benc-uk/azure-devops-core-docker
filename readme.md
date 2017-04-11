@@ -69,7 +69,7 @@ It is recommended you paste the VSTS account name, PAT token and Azure subscript
 ---
 
 # Main Exercise Flow
-With all the setup and pre-work complete, what follows below is the full step by step guide to the exercise 
+With all the setup and pre-work complete, what follows below is the full step by step guide to completing the exercise 
 
 ## 1. Create .NET Core MVC webapp
 First of all we'll create our .NET Core application project and source code. The .NET Core SDK uses the Yeoman templating system and comes with several built-in templates to get you started quickly. Open a command prompt or terminal and run the following commands:
@@ -244,7 +244,7 @@ We're nearly there (I promise! :sweat_smile:), the last major step is to define 
   * Click on the "Options" tab and set the default agent queue to *DockerAgents*
   * Click on the "Triggers" tab and turn on 'Continuous Integration'
 
-> #### NOTE: For screenshots of the previous steps, [click here](vsts-build.md)
+> #### NOTE: For screenshots of how to create the build definition, [click here](vsts-build.md)
 
 Click 'Save & Queue' to kick off a manual build, make sure the queue is set to *DockerAgents* then sit back, watch the logs and *Hope It All Works(:tm:)*...  
 When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
@@ -259,7 +259,7 @@ You have two choices at this point, if you're running out of time or tired of fi
 Return to your terminal and run `docker run -d -p 80:5000 mywebapp` this starts a container running your built .NET core app, and maps port 80 on the host to port 5000 in the container. Now skip to part 12 to view the app.
 
 #### 11.2 Continuous Deployment with VSTS
-These steps set up an automated release task in VSTS to run our app as a container each time it is built
+These steps set up an automated release job in VSTS to run our app as a container each time it is built
  * In your new VSTS project, go into 'Build & Release' --> 'Releases' --> create new definition
  * Choose the 'Empty' option at the bottom of the dialog
  * It should pick up your project and build definition as the source, tick the 'Continuous deployment' checkbox
@@ -277,7 +277,7 @@ These steps set up an automated release task in VSTS to run our app as a contain
    * Container Name: `mywebapp_$(Release.ReleaseName)`     
    * Ports: `80:5000`
 
-> #### NOTE: For screenshots of the previous steps, [click here](vsts-release.md)
+> #### NOTE: For screenshots of how to create the release definition, [click here](vsts-release.md)
 
 To trigger the pipeline, make a small change to your application code, e.g. change some words in your index.cstml. Them commit your changes to git and push up to VSTS (`git add .` then  `git commit -m "HTML tweak"` then `git push`)
 * Back in VSTS you should see your build being triggered and run.  
