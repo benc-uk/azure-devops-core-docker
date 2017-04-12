@@ -226,7 +226,8 @@ This might take about a minute to pull the image from Dockerhub and to fire up. 
 
 ## 10. Create build definition
 We're nearly there (I promise! :sweat_smile:), the last major step is to define the build job in VSTS. Unfortunately there's a few steps and they are all manual: 
-* In your new VSTS project, go into 'Build & Release' --> 'Builds' --> create new build definition
+* In your new VSTS project, go into 'Build & Release' --> 'Builds' -->  '+ New definition'
+  *  If you are prompted to use the 'New Build Editor' click yes, as it's much nicer and you will be able to follow my steps easier
 * Select "ASP.NET Core (PREVIEW)" as the template
 * Give it a nice name, as the default is pretty ugly, e.g. "Dotnet CI build for Docker"
 * Modify the build as follows:
@@ -260,7 +261,7 @@ Return to your terminal and run `docker run -d -p 80:5000 mywebapp` this starts 
 
 #### 11.2 Continuous Deployment with VSTS
 These steps set up an automated release job in VSTS to run our app as a container each time it is built
- * In your new VSTS project, go into 'Build & Release' --> 'Releases' --> create new definition
+ * In your new VSTS project, go into 'Build & Release' --> 'Releases' --> '+ New definition'
  * Choose the 'Empty' option at the bottom of the dialog
  * It should pick up your project and build definition as the source, tick the 'Continuous deployment' checkbox
  * Rename the definition (click the pencil) to something sensible e.g. "Deploy to Docker"
