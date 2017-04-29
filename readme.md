@@ -187,12 +187,7 @@ If you have the git credential manager installed, authentication should should p
 If you have trouble you have the option of manually creating git credentials by going into VSTS --> Code --> Generate Git credentials
 
 
-## 7. Install Docker Integration into VSTS 
-Docker support in VSTS is enabled via an extension on the VSTS marketplace 
-* Open this link in a new tab: [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscs-rm.docker) and click "Install"
-
-
-## 8. Point Docker client at remote host
+## 7. Point Docker client at remote host
 Hopefully the `docker-machine create` command we fired off earlier has completed (and successfully!) if not, go grab a quick coffee.  
 We need some way to interact with our new Docker host, and Docker machine makes this easy, by quickly setting a bunch of environment variables which "points" your Docker client at the new host. There's no need to connect via SSH or anything messy, simply run:
 ```
@@ -213,7 +208,7 @@ What has this done? It has set several environmental variables used by the docke
 Let's run a quick `docker ps` and/or `docker run hello-world` to verify everything is OK. You should get no errors
 
 
-## 9. Run VSTS agent as Docker container
+## 8. Run VSTS agent as Docker container
 We'll now spin up a VSTS agent, this will serve two purposes; to do our .NET code compile/publish, but also build our Docker image. We'll run it as a container which then gives us access to the parent Docker host.  
 To run the agent as container in the Docker host you just created, run this command:
 ```bash 
@@ -224,7 +219,7 @@ You will need to manually substitute `%VSTS_PAT%` and `%VSTS_ACCT%` (unless you 
 This might take about a minute to pull the image from Dockerhub and to fire up. You can check it has worked in the VSTS "Agent Queues" view, and check the *DockerAgents* pool/queue, the agent should eventually appear and turn green, the name will be gibberish BTW (if this annoys you can name it with `-e VSTS_AGENT=Foobar`). If it doesn't appear, run `docker ps` and check if the container is running, if not check your command and parameters.
 
 
-## 10. Create build definition
+## 9. Create build definition
 We're nearly there (I promise! :sweat_smile:), the last major step is to define the build job in VSTS. Unfortunately there's a few steps and they are all manual: 
 * In your new VSTS project, go into 'Build & Release' --> 'Builds' -->  '+ New definition'
   *  If you are prompted to use the 'New Build Editor' click yes, as it's much nicer and you will be able to follow my steps easier
@@ -237,11 +232,12 @@ We're nearly there (I promise! :sweat_smile:), the last major step is to define 
   * Add a new task (place it after the Publish step in the sequence)
     * Search for "Docker"
     * Add the first task in the list (labeled Docker)
+    * Change 'Container Registry Type' to 'Container Registry' but leave the connection blank
     * Change the new Docker task: in the 'Image Name' field and remove the first part of the image tag and hardcode it, something like `mywebapp:$(Build.BuildId)` also tick the 'Include Latest tag' checkbox
  * Add another new task (place it after the Docker task in the sequence)
     * Search for "Copy Files"
     * Add the task in the list labeled "Copy Files"
-    * Change the new copy task: Change contents to "Dockerfile" and the target folder to "$(build.artifactstagingdirectory)" (no quotes on either)
+    * Change the new copy task: Change contents to `Dockerfile` and the target folder to `$(build.artifactstagingdirectory)` (no quotes on either)
   * Click on the "Options" tab and set the default agent queue to *DockerAgents*
   * Click on the "Triggers" tab and turn on 'Continuous Integration'
 
@@ -251,15 +247,15 @@ Click 'Save & Queue' to kick off a manual build, make sure the queue is set to *
 When the build completes you should have a new Docker image called 'mywebapp' ready for use, you can validate this with a quick `docker images` command
 
 
-## 11. Release our app
+## 10. Release our app
 You have two choices at this point, if you're running out of time or tired of fiddling with VSTS, run a quick manual deployment. Otherwise I suggest you press on and complete the VSTS release definition so we have a complete continuous deployment pipeline.
 
 > Note. We use a fixed port for our app (HTTP port 80) which simplifies things, as it means we don't need to inspect our containers to find the dynamic port. However it also means we can only have a single container running.
 
-#### 11.1 Manual Deployment
+#### 10.1 Manual Deployment
 Return to your terminal and run `docker run -d -p 80:5000 mywebapp` this starts a container running your built .NET core app, and maps port 80 on the host to port 5000 in the container. Now skip to part 12 to view the app.
 
-#### 11.2 Continuous Deployment with VSTS
+#### 10.2 Continuous Deployment with VSTS
 These steps set up an automated release job in VSTS to run our app as a container each time it is built
  * In your new VSTS project, go into 'Build & Release' --> 'Releases' --> '+ New definition'
  * Choose the 'Empty' option at the bottom of the dialog
@@ -271,9 +267,11 @@ These steps set up an automated release job in VSTS to run our app as a containe
  * Change the task as follows:
    * Tool: `bash`
    * Arguments: `-c "docker ps --filter \"name=mywebapp\" -q|xargs docker rm -f || true"`
- * Click Add tasks, go into 'All' in the catalog and find the 'Docker' task, add it, then hit close
+ * Click Add tasks, go into 'Build' in the catalog and find the 'Docker' task, add it, then hit close
  * Change the Docker task as follows:
    * Action: Run an image
+   * Container Registry Type: **Container Registry**
+   * Docker Registry Connection: _<blank>_
    * Image Name: `mywebapp:$(Build.BuildId)`
    * Container Name: `mywebapp_$(Release.ReleaseName)`     
    * Ports: `80:5000`
@@ -285,7 +283,7 @@ To trigger the pipeline, make a small change to your application code, e.g. chan
 * Once the build completes you should see the release trigger and the "Deploy to Docker" job running with a release number e.g. "Release-1".  
 
 
-## 12. View your deployed web app
+## 11. View your deployed web app
 Final Step... To connect to our running container and web app we'll need the public IP of the Docker host, we can get this from the Azure portal, [click here for steps with screenshots](azure.md).  
 Alternatively run `echo %DOCKER_HOST%` and the IP address will be in the resulting URL. Once you have the IP address, open a new browser tab and go to `http://{docker_host_public_ip}` and you should see your web application up and running.  
 Gosh wow amazing! etc. :sunglasses: 
