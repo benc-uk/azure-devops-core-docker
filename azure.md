@@ -7,3 +7,5 @@ Click into Resource Groups (the blue cube icon on the right-hand toolbar), then 
 
 Click on the "Public IP" resource, from there you can find the IP address
 ![screen](imgs/azure-pip.png)
+
+# Blah
